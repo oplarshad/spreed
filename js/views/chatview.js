@@ -533,10 +533,10 @@
 			$el.find('.has-tooltip').tooltip({container: this._tooltipContainer});
 
 			var setAvatar = function($element, size) {
-				if (!model || model.get('actorType') === 'users') {
+				if ($element.data('user-id')) {
 					$element.avatar($element.data('user-id'), size, undefined, false, undefined, $element.data('displayname'));
 				} else {
-					$element.imageplaceholder('?', model.get('actorDisplayName'), size);
+					$element.imageplaceholder('?', $element.data('displayname'), size);
 					$element.css('background-color', '#b9b9b9');
 				}
 			};
@@ -551,13 +551,13 @@
 				setAvatar($(this), 16);
 			});
 
-			var username = $el.find('.avatar').data('user-id');
 			if (OC.getCurrentUser().uid &&
 				model &&
 				model.get('actorType') === 'users' &&
-				username !== OC.getCurrentUser().uid) {
+				model.get('actorId') !== OC.getCurrentUser().uid) {
 				$el.find('.authorRow .avatar, .authorRow .author').contactsMenu(
-					username, 0, $el.find('.authorRow'));
+					model.get('actorId'), 0, $el.find('.authorRow .author')
+				);
 			}
 
 			var $message = $el.find('.message');
@@ -580,7 +580,7 @@
 				var $this = $(this);
 				var $avatar = $this.find('.avatar');
 
-				var user = $avatar.data('user');
+				var user = $avatar.data('user-id');
 				if (user !== OC.getCurrentUser().uid) {
 					$this.contactsMenu(user, 0, $this);
 				}

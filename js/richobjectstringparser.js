@@ -18,8 +18,8 @@
 					'<span class="mention-user avatar-name-wrapper {{#if isCurrentUser}}currentUser{{/if}}">' +
 						'<span class="avatar" ' +
 								'data-username="{{id}}" ' +
-								'data-user="{{id}}" ' +
-								'data-user-display-name="{{name}}">' +
+								'data-user-id="{{id}}" ' +
+								'data-displayname="{{name}}">' +
 						'</span>' +
 						'<strong>{{name}}</strong>' +
 					'</span>' +
