@@ -746,14 +746,14 @@ class RoomController extends OCSController {
 	public function addParticipantToRoom(string $token, string $newParticipant): DataResponse {
 		try {
 			$room = $this->manager->getRoomForParticipantByToken($token, $this->userId);
-			$participant = $room->getParticipant($this->userId);
+			$currentUser = $room->getParticipant($this->userId);
 		} catch (RoomNotFoundException $e) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		} catch (ParticipantNotFoundException $e) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		if (!$participant->hasModeratorPermissions(false)) {
+		if (!$currentUser->hasModeratorPermissions(false)) {
 			return new DataResponse([], Http::STATUS_FORBIDDEN);
 		}
 
@@ -769,7 +769,10 @@ class RoomController extends OCSController {
 
 		$newUser = $this->userManager->get($newParticipant);
 		if (!$newUser instanceof IUser) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			$newUser = $this->groupManager->get($newParticipant);
+			if (!$newUser instanceof IGroup) {
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
 		}
 
 		$data = [];
@@ -780,9 +783,25 @@ class RoomController extends OCSController {
 			$data = ['type' => $room->getType()];
 		}
 
-		$room->addUsers([
-			'userId' => $newUser->getUID(),
-		]);
+		if ($newUser instanceof IGroup) {
+			$usersInGroup = $newUser->getUsers();
+			$participantsToAdd = [];
+			foreach ($usersInGroup as $user) {
+				if (isset($participants['users'][$user->getUID()])) {
+					continue;
+				}
+
+				$participantsToAdd[] = [
+					'userId' => $user->getUID(),
+				];
+			}
+
+			\call_user_func_array([$room, 'addUsers'], $participantsToAdd);
+		} else {
+			$room->addUsers([
+				'userId' => $newUser->getUID(),
+			]);
+		}
 
 		return new DataResponse($data);
 	}
