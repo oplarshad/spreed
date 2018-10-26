@@ -314,6 +314,7 @@ Base endpoint is: `/ocs/v2.php/apps/spreed/api/v1`
     field | type | Description
     ------|------|------------
     `newParticipant` | string | User or group to add
+    `isGroup` | bool | Define if you're adding a group (default is false)
 
 * Response:
     - Header:
