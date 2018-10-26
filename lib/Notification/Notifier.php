@@ -37,6 +37,7 @@ use OCP\L10N\IFactory;
 use OCP\Notification\INotification;
 use OCP\Notification\INotifier;
 use OCP\RichObjectStrings\Definitions;
+use OCP\Share\IManager as ShareManager;
 
 class Notifier implements INotifier {
 
@@ -48,6 +49,9 @@ class Notifier implements INotifier {
 
 	/** @var IUserManager */
 	protected $userManager;
+
+	/** @var ShareManager */
+	private $shareManager;
 
 	/** @var Manager */
 	protected $manager;
@@ -64,6 +68,7 @@ class Notifier implements INotifier {
 	public function __construct(IFactory $lFactory,
 								IURLGenerator $url,
 								IUserManager $userManager,
+								ShareManager $shareManager,
 								Manager $manager,
 								ICommentsManager $commentManager,
 								MessageParser $messageParser,
@@ -71,6 +76,7 @@ class Notifier implements INotifier {
 		$this->lFactory = $lFactory;
 		$this->url = $url;
 		$this->userManager = $userManager;
+		$this->shareManager = $shareManager;
 		$this->manager = $manager;
 		$this->commentManager = $commentManager;
 		$this->messageParser = $messageParser;
@@ -450,7 +456,13 @@ class Notifier implements INotifier {
 			throw new \InvalidArgumentException('Unknown object type');
 		}
 
-		$sharedWith = $room->getName();
+		try {
+			$share = $this->shareManager->getShareByToken($room->getObjectId());
+		} catch (ShareNotFound $e) {
+			throw new \InvalidArgumentException('Unknown share');
+		}
+
+		$sharedWith = $share->getSharedWith();
 
 		$notification
 			->setParsedSubject(str_replace('{email}', $sharedWith, $l->t('{email} requested the password to access a share')))
